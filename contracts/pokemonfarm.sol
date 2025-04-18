@@ -208,6 +208,8 @@ contract PokemonFarm is Ownable {
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_name).length <= 25, "Name too long");
 
+        //TODO: let the user choose a starter pokemon (bulbasaur, charmander, squirtle, (pikachu?)) before generating it.
+
         _generateNewPokemon(_name);
 
         // Return excess payment
