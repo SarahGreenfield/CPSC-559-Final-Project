@@ -207,6 +207,9 @@ contract PokemonFarm is Ownable {
         require(msg.value >= createFee, "Insufficient payment for new pokemon");
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_name).length <= 25, "Name too long");
+
+        _generateNewPokemon(_name);
+
         // Return excess payment
         if (msg.value > createFee)
         {
