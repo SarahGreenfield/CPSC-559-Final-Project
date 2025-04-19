@@ -202,13 +202,21 @@ contract PokemonFarm is Ownable {
             payable(msg.sender).transfer(msg.value - createFee);
         }
     }*/
-    function generateRandomPokemon(string memory _name) public payable virtual {
+    function generateRandomPokemon(string memory _name, uint pokemonId, address _owner) public payable virtual {
         // Only check for valid payment and name
         require(msg.value >= createFee, "Insufficient payment for new pokemon");
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_name).length <= 25, "Name too long");
 
         //TODO: let the user choose a starter pokemon (bulbasaur, charmander, squirtle, (pikachu?)) before generating it.
+        if(ownerPokemonCount[_owner] == 0)
+        {
+            require(keccak256(abi.encodePacked(_name)) == keccak256(abi.encodePacked("Bulbasaur")) ||
+            keccak256(abi.encodePacked(_name)) == keccak256(abi.encodePacked("Charmander")) ||
+            keccak256(abi.encodePacked(_name)) == keccak256(abi.encodePacked("Squirtle")) ||
+            keccak256(abi.encodePacked(_name)) == keccak256(abi.encodePacked("Pikachu")),
+            "Invalid starter Pokemon. Please choose from either 'Bulbasaur', 'Charmander', 'Squirtle', or 'Pikachu'.");
+        }
 
         _generateNewPokemon(_name);
 
@@ -267,4 +275,3 @@ contract PokemonFarm is Ownable {
         return result;
     }
 }
-
