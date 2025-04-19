@@ -35,6 +35,7 @@ contract PokemonFarm is Ownable {
     mapping (address => uint) public ownerPokemonCount;
 
     mapping (uint => string) public pokemonDatabase;
+    mapping (uint => Pokemon) public pokemonStats;
     constructor() {
         pokemonDatabase[1] = "Bulbasaur";
         pokemonDatabase[2] = "Ivysaur";
