@@ -203,7 +203,7 @@ contract PokemonFarm is Ownable {
             payable(msg.sender).transfer(msg.value - createFee);
         }
     }*/
-    function generateRandomPokemon(string memory _name, uint pokemonId, address _owner) public payable virtual {
+    function generateNewPokemon(string memory _name, uint pokemonId, address _owner) public payable virtual {
         // Only check for valid payment and name
         require(msg.value >= createFee, "Insufficient payment for new pokemon");
         require(bytes(_name).length > 0, "Name cannot be empty");
@@ -219,7 +219,7 @@ contract PokemonFarm is Ownable {
             "Invalid starter Pokemon. Please choose from either 'Bulbasaur', 'Charmander', 'Squirtle', or 'Pikachu'.");
         }
 
-        _generateNewPokemon(_name);
+        _generatePokemon(_name);
 
         // Return excess payment
         if (msg.value > createFee)
@@ -236,7 +236,7 @@ contract PokemonFarm is Ownable {
         ownerZombieCount[msg.sender]++;
         emit NewZombie(id, _name, _dna);
     }*/
-    function _generateNewPokemon(string memory _name) internal {
+    function _generatePokemon(string memory _name) internal {
         // Remove all restrictions, just create the pokemon
         //TODO: need to figure out how to give different pokemon different stats
         pokemons.push(Pokemon(_name, "Rock", 1, uint32(block.timestamp + cooldownTime), 0, 0, 10, 1, 1, 2, 2, 1, "Bite", "Thrash"));
