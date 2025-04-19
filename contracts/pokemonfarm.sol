@@ -15,6 +15,7 @@ contract PokemonFarm is Ownable {
     struct Pokemon {
         string name;
         //uint dna;
+        string attribute;
         uint32 level;
         uint32 readyTime;
         uint16 winCount;
@@ -208,7 +209,7 @@ contract PokemonFarm is Ownable {
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_name).length <= 25, "Name too long");
 
-        //TODO: let the user choose a starter pokemon (bulbasaur, charmander, squirtle, (pikachu?)) before generating it.
+        //Let the user choose a starter pokemon (bulbasaur, charmander, squirtle, or pikachu) before generating it.
         if(ownerPokemonCount[_owner] == 0)
         {
             require(keccak256(abi.encodePacked(_name)) == keccak256(abi.encodePacked("Bulbasaur")) ||
@@ -238,7 +239,7 @@ contract PokemonFarm is Ownable {
     function _generateNewPokemon(string memory _name) internal {
         // Remove all restrictions, just create the pokemon
         //TODO: need to figure out how to give different pokemon different stats
-        pokemons.push(Pokemon(_name, 1, uint32(block.timestamp + cooldownTime), 0, 0, 10, 1, 1, 2, 2, 1, "bite", "growl"));
+        pokemons.push(Pokemon(_name, "Rock", 1, uint32(block.timestamp + cooldownTime), 0, 0, 10, 1, 1, 2, 2, 1, "Bite", "Thrash"));
         uint id = pokemons.length - 1;
         pokemonToOwner[id] = msg.sender;
         ownerPokemonCount[msg.sender]++;
