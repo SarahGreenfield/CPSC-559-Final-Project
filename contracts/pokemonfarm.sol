@@ -204,7 +204,7 @@ contract PokemonFarm is Ownable {
             payable(msg.sender).transfer(msg.value - createFee);
         }
     }*/
-    function generateNewPokemon(string memory _name, uint pokemonId, address _owner) public payable virtual {
+    function generateNewPokemon(string memory _name, uint /*pokemonId*/, address _owner) public payable virtual {
         // Only check for valid payment and name
         require(msg.value >= createFee, "Insufficient payment for new pokemon");
         require(bytes(_name).length > 0, "Name cannot be empty");
