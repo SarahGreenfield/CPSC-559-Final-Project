@@ -2,10 +2,11 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./Pokemon.sol";
 import "./Token.sol";
 
-contract Marketplace is Ownable {
+contract Marketplace is Ownable, IERC721Receiver {
     Pokemon public pokemonContract;
     Token public tokenContract;
     
@@ -31,11 +32,7 @@ contract Marketplace is Ownable {
     function listPokemon(uint256 tokenId, uint256 price) public {
         require(pokemonContract.ownerOf(tokenId) == msg.sender, "Not the owner of this Pokemon");
         require(price > 0, "Price must be greater than 0");
-        
-        // Transfer Pokemon to marketplace
-        pokemonContract.transferFrom(msg.sender, address(this), tokenId);
-        
-        // Create listing
+        // Allow multiple listings per user (per tokenId)
         listingCount++;
         listings[listingCount] = Listing({
             seller: msg.sender,
@@ -43,7 +40,6 @@ contract Marketplace is Ownable {
             price: price,
             isActive: true
         });
-        
         emit PokemonListed(listingCount, msg.sender, tokenId, price);
     }
     
@@ -63,16 +59,14 @@ contract Marketplace is Ownable {
         Listing storage listing = listings[listingId];
         require(listing.isActive, "Listing is not active");
         require(msg.sender != listing.seller, "Cannot purchase your own Pokemon");
-        
-        // Check if buyer has enough tokens
         require(tokenContract.balanceOf(msg.sender) >= listing.price, "Insufficient token balance");
-        
-        // Transfer tokens from buyer to seller
+        // New check: seller must still own the Pokemon
+        if (pokemonContract.ownerOf(listing.tokenId) != listing.seller) {
+            listing.isActive = false;
+            revert("Seller no longer owns this Pokemon");
+        }
         tokenContract.transferFrom(msg.sender, listing.seller, listing.price);
-        
-        // Transfer Pokemon to buyer
-        pokemonContract.transferFrom(address(this), msg.sender, listing.tokenId);
-        
+        pokemonContract.transferFrom(listing.seller, msg.sender, listing.tokenId);
         listing.isActive = false;
         emit PokemonPurchased(listingId, msg.sender, listing.seller, listing.tokenId, listing.price);
     }
@@ -95,5 +89,35 @@ contract Marketplace is Ownable {
         }
         
         return activeListings;
+    }
+
+    function getActiveListingsWithIds() public view returns (uint256[] memory, Listing[] memory) {
+        uint256 activeCount = 0;
+        for (uint256 i = 1; i <= listingCount; i++) {
+            if (listings[i].isActive) {
+                activeCount++;
+            }
+        }
+
+        uint256[] memory ids = new uint256[](activeCount);
+        Listing[] memory activeListings = new Listing[](activeCount);
+        uint256 index = 0;
+        for (uint256 i = 1; i <= listingCount; i++) {
+            if (listings[i].isActive) {
+                ids[index] = i;
+                activeListings[index] = listings[i];
+                index++;
+            }
+        }
+        return (ids, activeListings);
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external pure override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 } 

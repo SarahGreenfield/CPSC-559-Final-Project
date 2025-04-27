@@ -2,10 +2,12 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract Pokemon is ERC721, Ownable {
+contract Pokemon is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -33,7 +35,6 @@ contract Pokemon is ERC721, Ownable {
     mapping(address => uint256[]) public userPokemon;
     mapping(uint256 => address) public pokemonToOwner;
     mapping(uint256 => EvolutionData) public evolutionData;
-    mapping(address => bool) public hasStarter;
     mapping(address => bool) public authorizedContracts;
 
     // Evolution mappings
@@ -94,8 +95,7 @@ contract Pokemon is ERC721, Ownable {
 
     function mintStarterPokemon(uint256 pokemonId) public returns (uint256) {
         require(pokemonId == 1 || pokemonId == 4 || pokemonId == 7 || pokemonId == 25, "Invalid starter Pokemon");
-        require(!hasStarter[msg.sender], "Already has a starter Pokemon");
-        require(userPokemon[msg.sender].length == 0, "Already has Pokemon");
+        require(balanceOf(msg.sender) == 0, "Already has a starter Pokemon");
 
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
@@ -118,7 +118,6 @@ contract Pokemon is ERC721, Ownable {
         _mint(msg.sender, newTokenId);
         userPokemon[msg.sender].push(newTokenId);
         pokemonToOwner[newTokenId] = msg.sender;
-        hasStarter[msg.sender] = true;
 
         emit PokemonMinted(msg.sender, newTokenId, pokemonId);
         return newTokenId;
@@ -232,20 +231,25 @@ contract Pokemon is ERC721, Ownable {
         uint256 batchSize
     ) internal override {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
-        
         // Update ownership tracking
         if (from != address(0)) {
             // Remove from sender's list
             uint256[] storage senderPokemon = userPokemon[from];
-            for (uint256 i = 0; i < senderPokemon.length; i++) {
+            uint256 length = senderPokemon.length;
+            for (uint256 i = 0; i < length; i++) {
                 if (senderPokemon[i] == tokenId) {
-                    senderPokemon[i] = senderPokemon[senderPokemon.length - 1];
+                    // If it's not the last element, swap with the last element
+                    if (i < length - 1) {
+                        senderPokemon[i] = senderPokemon[length - 1];
+                    }
+                    // Remove the last element
                     senderPokemon.pop();
                     break;
                 }
             }
+            // Update the pokemonToOwner mapping
+            delete pokemonToOwner[tokenId];
         }
-        
         if (to != address(0)) {
             // Add to receiver's list
             userPokemon[to].push(tokenId);
@@ -326,5 +330,104 @@ contract Pokemon is ERC721, Ownable {
             pokemon.pokemonId = newPokemonId;
             emit PokemonEvolved(tokenId, newPokemonId);
         }
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        
+        PokemonData memory pokemon = pokemonData[tokenId];
+        string memory baseURI = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/";
+        
+        // Convert pokemonId to string and construct the full URL
+        string memory imageURI = string(abi.encodePacked(
+            baseURI,
+            Strings.toString(pokemon.pokemonId),
+            ".png"
+        ));
+
+        // Create a JSON metadata string
+        string memory json = string(abi.encodePacked(
+            '{"name": "Pokemon #', Strings.toString(tokenId), '",',
+            '"description": "A unique Pokemon NFT",',
+            '"image": "', imageURI, '",',
+            '"attributes": [',
+            '{"trait_type": "Pokemon ID", "value": ', Strings.toString(pokemon.pokemonId), '},',
+            '{"trait_type": "Level", "value": ', Strings.toString(pokemon.level), '},',
+            '{"trait_type": "HP", "value": ', Strings.toString(pokemon.hp), '},',
+            '{"trait_type": "Attack", "value": ', Strings.toString(pokemon.attack), '},',
+            '{"trait_type": "Defense", "value": ', Strings.toString(pokemon.defense), '},',
+            '{"trait_type": "Speed", "value": ', Strings.toString(pokemon.speed), '}',
+            ']}'
+        ));
+
+        // Convert the JSON string to base64
+        string memory base64Json = Base64.encode(bytes(json));
+        
+        // Return the data URI
+        return string(abi.encodePacked(
+            "data:application/json;base64,",
+            base64Json
+        ));
+    }
+}
+
+/// @title Base64
+/// @author Brecht Devos - <brecht@loopring.org>
+/// @notice Provides a function for encoding some bytes in base64
+library Base64 {
+    string internal constant TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+    function encode(bytes memory data) internal pure returns (string memory) {
+        if (data.length == 0) return '';
+        
+        // load the table into memory
+        string memory table = TABLE;
+
+        // multiply by 4/3 rounded up
+        uint256 encodedLen = 4 * ((data.length + 2) / 3);
+
+        // add some extra buffer at the end required for the writing
+        string memory result = new string(encodedLen + 32);
+
+        assembly {
+            // set the actual output length
+            mstore(result, encodedLen)
+            
+            // prepare the lookup table
+            let tablePtr := add(table, 1)
+            
+            // input ptr
+            let dataPtr := data
+            let endPtr := add(dataPtr, mload(data))
+            
+            // result ptr, jump over length
+            let resultPtr := add(result, 32)
+            
+            // run over the input, 3 bytes at a time
+            for {} lt(dataPtr, endPtr) {}
+            {
+                dataPtr := add(dataPtr, 3)
+                
+                // read 3 bytes
+                let input := mload(dataPtr)
+                
+                // write 4 characters
+                mstore(resultPtr, shl(248, mload(add(tablePtr, and(shr(18, input), 0x3F)))))
+                resultPtr := add(resultPtr, 1)
+                mstore(resultPtr, shl(248, mload(add(tablePtr, and(shr(12, input), 0x3F)))))
+                resultPtr := add(resultPtr, 1)
+                mstore(resultPtr, shl(248, mload(add(tablePtr, and(shr( 6, input), 0x3F)))))
+                resultPtr := add(resultPtr, 1)
+                mstore(resultPtr, shl(248, mload(add(tablePtr, and(        input,  0x3F)))))
+                resultPtr := add(resultPtr, 1)
+            }
+            
+            // padding with '='
+            switch mod(mload(data), 3)
+            case 1 { mstore(sub(resultPtr, 2), shl(240, 0x3d3d)) }
+            case 2 { mstore(sub(resultPtr, 1), shl(248, 0x3d)) }
+        }
+        
+        return result;
     }
 } 

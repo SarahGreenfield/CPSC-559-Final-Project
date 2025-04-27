@@ -116,29 +116,42 @@ const Collection = () => {
         return
       }
 
-      // Filter out duplicate tokenIds
+      // Filter out duplicate tokenIds and verify ownership
       const uniqueTokenIds = [...new Set(userPokemon.map(id => id.toString()))]
       
       const pokemonData = await Promise.all(
         uniqueTokenIds.map(async (tokenId) => {
-          const data = await contract.pokemonData(tokenId)
-          return {
-            tokenId: tokenId,
-            pokemonId: data.pokemonId.toString(),
-            level: data.level.toString(),
-            experience: data.experience.toString(),
-            hp: data.hp.toString(),
-            maxHp: data.maxHp.toString(),
-            attack: data.attack.toString(),
-            defense: data.defense.toString(),
-            speed: data.speed.toString(),
-            stamina: data.stamina.toString(),
-            isResting: data.isResting
+          try {
+            // Check actual ownership
+            const owner = await contract.ownerOf(tokenId);
+            if (owner.toLowerCase() !== address.toLowerCase()) {
+              console.log(`Token ${tokenId} is not owned by current user`);
+              return null;
+            }
+
+            const data = await contract.pokemonData(tokenId)
+            return {
+              tokenId: tokenId,
+              pokemonId: data.pokemonId.toString(),
+              level: data.level.toString(),
+              experience: data.experience.toString(),
+              hp: data.hp.toString(),
+              maxHp: data.maxHp.toString(),
+              attack: data.attack.toString(),
+              defense: data.defense.toString(),
+              speed: data.speed.toString(),
+              stamina: data.stamina.toString(),
+              isResting: data.isResting
+            }
+          } catch (error) {
+            console.error(`Error processing token ${tokenId}:`, error);
+            return null;
           }
         })
       )
       
-      setPokemonList(pokemonData)
+      const validPokemon = pokemonData.filter(p => p !== null);
+      setPokemonList(validPokemon)
     } catch (error) {
       console.error('Error loading Pokemon:', error)
       toast({
@@ -167,10 +180,10 @@ const Collection = () => {
       )
       
       // Check if user already has Pokemon
-      const userPokemon = await pokemonContract.getUserPokemon(address)
-      if (userPokemon.length > 0) {
-        throw new Error('You already have a Pokemon!')
-      }
+      // const userPokemon = await pokemonContract.getUserPokemon(address)
+      // if (userPokemon.length > 0) {
+      //   throw new Error('You already have a Pokemon!')
+      // }
       
       const tx = await pokemonContract.mintStarterPokemon(pokemonId)
       await tx.wait()
