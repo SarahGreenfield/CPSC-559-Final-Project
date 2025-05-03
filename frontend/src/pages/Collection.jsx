@@ -110,6 +110,7 @@ const Collection = () => {
         throw new Error('Contract not deployed at this address')
       }
       
+      // Get all tokens ever owned by the user
       const userPokemon = await contract.getUserPokemon(address)
       if (userPokemon.length === 0) {
         setPokemonList([])
@@ -156,7 +157,7 @@ const Collection = () => {
       console.error('Error loading Pokemon:', error)
       toast({
         title: 'Error',
-        description: error.message || 'Failed to load Pokemon collection',
+        description: error.message,
         status: 'error',
         duration: 5000,
         isClosable: true,

@@ -67,7 +67,7 @@ node scripts/copy-artifacts.js
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
 ## Configuration
@@ -159,7 +159,3 @@ npm start
 ## Contributing
 
 Feel free to submit issues and enhancement requests!
-
-## License
-
-This project is licensed under the MIT License.

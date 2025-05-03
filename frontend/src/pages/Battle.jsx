@@ -137,6 +137,12 @@ const Battle = () => {
         uniqueUserPokemon.map(async (tokenId) => {
           try {
             console.log('Loading details for token:', tokenId);
+            // Check actual ownership
+            const owner = await pokemonContract.ownerOf(tokenId);
+            if (owner.toLowerCase() !== address.toLowerCase()) {
+              console.log(`Token ${tokenId} is not owned by current user`);
+              return null;
+            }
             const data = await pokemonContract.pokemonData(tokenId);
             console.log('Pokemon data for token', tokenId, ':', data);
             return {
@@ -177,10 +183,7 @@ const Battle = () => {
             const owner = await pokemonContract.ownerOf(tokenId);
             // Only include Pokemon not owned by the user and owned by someone
             if (owner && owner.toLowerCase() !== address.toLowerCase()) {
-              const tokenIdStr = tokenId.toString();
-              if (!uniqueUserPokemon.includes(tokenIdStr)) {
-                mintedPokemon.push(tokenId);
-              }
+              mintedPokemon.push(tokenId);
             }
             tokenId++;
           } catch (error) {
