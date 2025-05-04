@@ -2,6 +2,23 @@
 
 A decentralized Pokemon battle game built on Ethereum using Hardhat and React. Battle your Pokemon against others, gain experience, and climb the leaderboard!
 
+## Contributors
+Name: Robin Khiv
+CWID: 802807305
+Email: robin.k@csu.fullerton.edu
+
+Name: Shayan Darian
+CWID: 885135772
+Email: skdarian@csu.fullerton.edu
+
+Name: Sarah Greenfield
+CWID: 888637386
+Email: sarah.greenfield@csu.fullerton.edu
+
+Name: Yash Dusane
+CWID: 873650295
+Email: Yash_Dusane@csu.fullerton.edu
+
 ## Features
 
 ### Blockchain Features
