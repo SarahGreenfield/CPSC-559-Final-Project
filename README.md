@@ -15,13 +15,13 @@ A decentralized Pokemon battle game built on Ethereum using Hardhat and React. B
 - **Lazy Listing Marketplace**: List your Pokemon for sale without transferring them to the marketplace contract. You can still train, battle, and interact with your Pokemon while they are listed. Ownership only transfers when purchased.
 
 ### Game Features
-- Mint your own Pokemon
-- List and purchase Pokemon on the marketplace
-- Battle other players' Pokemon
-- Gain experience and level up
-- Track your battle history
-- View the leaderboard
-- Modern, responsive UI
+- **Starter Pokemon**: Choose from Bulbasaur, Charmander, Squirtle, or Pikachu as your first Pokemon
+- **Training System**: Train your Pokemon to gain experience and level up
+- **Battle System**: Challenge other trainers' Pokemon in battles
+- **Stats System**: Each Pokemon has HP, Attack, Defense, and Speed stats that increase with level
+- **Stamina System**: Pokemon need to rest to recover stamina after training or battles
+- **Marketplace**: Buy and sell Pokemon using the game's token currency
+- **Modern UI**: Clean and responsive interface for managing your Pokemon collection
 
 ## Prerequisites
 
@@ -34,8 +34,8 @@ A decentralized Pokemon battle game built on Ethereum using Hardhat and React. B
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd pokemon-battle-arena
+git clone https://github.com/robinkhiv/CPSC-559-Final-Project.git
+cd CPSC-559-Final-Project
 ```
 
 2. Install dependencies:
@@ -43,27 +43,22 @@ cd pokemon-battle-arena
 npm install
 ```
 
-3. Download Pokemon images:
-```bash
-node scripts/download-pokemon-images.js
-```
-
-4. Start the local Hardhat node:
+3. Start the local Hardhat node:
 ```bash
 npx hardhat node
 ```
 
-5. In a new terminal, deploy the contracts:
+4. In a new terminal, deploy the contracts:
 ```bash
 npx hardhat run scripts/deploy.js --network localhost
 ```
 
-6. Copy contract artifacts to frontend (ensure ABI is up to date!):
+5. Copy contract artifacts to frontend:
 ```bash
 node scripts/copy-artifacts.js
 ```
 
-7. Start the frontend development server:
+6. Start the frontend development server:
 ```bash
 cd frontend
 npm install
@@ -95,35 +90,60 @@ npm run dev
    - Choose your starter Pokemon (Bulbasaur, Charmander, Squirtle, or Pikachu)
    - **If you sell or transfer your only Pokemon, you can mint a new starter!**
 
-3. **List a Pokemon for Sale**
+3. **Train Your Pokemon**
+   - Go to the "Collection" page
+   - Select a Pokemon from your collection
+   - Click "Train" to gain experience
+   - Your Pokemon will gain 50 experience points per training session
+   - Level up occurs at 100 experience points
+   - Stats increase by 5 points per level
+
+4. **Battle Other Pokemon**
+   - Go to the "Battle" page
+   - Select your Pokemon and an opponent
+   - Click "Start Battle!"
+   - Watch the battle unfold and see the results
+   - Winners receive 10 tokens and 100 experience points
+   - Losers receive 50 experience points
+
+5. **List a Pokemon for Sale**
    - Go to the "Marketplace" page
    - Select a Pokemon from your collection
    - Enter a price in tokens
    - Click "List Pokemon"
    - **Your Pokemon stays in your wallet and can still be trained or battled while listed.**
 
-4. **Purchase a Pokemon**
-   - Switch to another account (import a different Hardhat account in MetaMask)
+6. **Purchase a Pokemon**
    - Go to the "Marketplace" page
    - Click "Purchase" on a listed Pokemon
    - The Pokemon will be transferred to your account
 
-5. **Battle Other Pokemon**
-   - Go to the "Battle" page
-   - Select your Pokemon and an opponent
-   - Click "Start Battle!"
-   - Watch the battle unfold and see the results
-
-6. **Track Your Progress**
+7. **Track Your Progress**
    - View your Pokemon's stats and experience
    - Check your battle history
    - See where you rank on the leaderboard
 
-## Marketplace Model
+## Game Mechanics
 
-- **Lazy Listing**: When you list a Pokemon, it stays in your wallet. You can still train, battle, and interact with it until it is purchased.
-- **Purchase**: When another user purchases your listed Pokemon, it is transferred directly from your wallet to theirs.
-- **Multiple Listings**: You can list multiple Pokemon, even of the same species, as each is a unique NFT.
+### Experience and Leveling
+- Each training session grants 50 experience points
+- Level up occurs at 100 experience points
+- Stats increase by 5 points per level
+- HP is fully restored upon level up
+- Stamina is fully restored upon level up
+
+### Battle System
+- Battles are determined by Pokemon stats and level
+- Winners receive 10 tokens and 100 experience points
+- Losers receive 50 experience points
+- Pokemon need stamina to battle
+- Battle history is recorded on the blockchain
+
+### Stamina System
+- Training costs 10 stamina points
+- Battles cost 20 stamina points
+- Pokemon can rest to recover stamina
+- Full stamina is 100 points
 
 ## Common Issues & Troubleshooting
 
@@ -136,7 +156,7 @@ npm run dev
    - Check your Hardhat node is running
    - Ensure you have enough ETH in your account
    - Verify your Pokemon has enough stamina
-   - Make sure you have enough ERC-20 tokens for purchases (use the "Get Test Tokens" button in the Marketplace)
+   - Make sure you have enough ERC-20 tokens for purchases
 
 3. **Pokemon not showing up**
    - Refresh the page
@@ -145,16 +165,17 @@ npm run dev
    - If you listed a Pokemon, it will still show in your collection until purchased
 
 4. **Can't mint a starter after selling**
-   - You can mint a new starter if you have no Pokemon in your wallet (even if you previously owned one and sold it)
+   - You can mint a new starter if you have no Pokemon in your wallet
    - If you see an error, make sure your contract and frontend are up to date and synced
 
-5. **Can't purchase a Pokemon (listing not active)**
-   - Make sure you are using the correct listing ID (the frontend now uses the correct ID from the contract)
-   - Refresh the page to get the latest listings
-   - Only the buyer (not the seller) can purchase a listing
+5. **Can't purchase a Pokemon**
+   - Make sure you have enough tokens
+   - Check that the listing is still active
+   - Verify you're not trying to purchase your own Pokemon
 
 6. **ABI or contract errors**
-   - If you see errors about missing functions, make sure you have copied the latest contract artifacts to the frontend and restarted your dev server
+   - If you see errors about missing functions, make sure you have copied the latest contract artifacts to the frontend
+   - Restart your dev server after updating artifacts
 
 ## Contributing
 
